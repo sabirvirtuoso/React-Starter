@@ -59,7 +59,10 @@ class Game extends Component {
       const [a, b, c] = lines[i];
 
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+        return {
+          winner: squares[a],
+          winSquares: [a, b, c],
+        };
       }
     }
 
@@ -104,7 +107,7 @@ class Game extends Component {
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
-    const winner = this.calculateWinner(current.squares);
+    const winnerObject = this.calculateWinner(current.squares)
 
     let button;
 
@@ -129,8 +132,10 @@ class Game extends Component {
 
     let status;
 
-    if (winner) {
-      status = `Winner is: ${winner}`;
+    if (winnerObject && winnerObject.winner) {
+      status = `Winner is: ${winnerObject.winner}`;
+    } else if (this.state.stepNumber === 9) {
+      status = 'Game is drawn';
     } else {
       status = `Next Player: ${this.state.xIsNext ? 'X' : 'O'}`;
     }
@@ -138,7 +143,7 @@ class Game extends Component {
     return (
       <div className="game">
         <div className="game-board">
-          <Board squares={current.squares} onClick={(i) => this.handleClick(i)}/>
+          <Board squares={current.squares} winSquares={winnerObject ? winnerObject.winSquares : null} onClick={(i) => this.handleClick(i)} />
         </div>
         <div className="game-info">
           <div className="status">{status}</div>
@@ -159,7 +164,8 @@ class Board extends Component {
       let rowElements = [];
 
       for (let k = j; k < j + 3; k++) {
-        const element = <Square key={k} value={this.props.squares[k]} onClick={() => this.props.onClick(k)} />;
+        const element = <Square key={k} value={this.props.squares[k]} onClick={() => this.props.onClick(k)} style={this.props.winSquares && 
+          this.props.winSquares.includes(k) ? 'square-winner': 'square'}/>;
         rowElements.push(element);
       }
 
@@ -177,7 +183,7 @@ class Board extends Component {
 
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className={props.style} onClick={props.onClick}>
       {props.value}
     </button>
   );
